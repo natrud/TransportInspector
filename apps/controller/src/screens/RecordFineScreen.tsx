@@ -76,7 +76,7 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
   // конкретного квитка неможливо — контролер обирає ВИД ТРАНСПОРТУ, а ціну
   // за нього бере з адмінки (не хардкод): скільки видів транспорту і які в
   // них ціни — вирішує /admin/app-setting/list, тут лише відображаємо.
-  const { fares, isLoading: faresLoading } = useTransportFares();
+  const { fares, isLoading: faresLoading, error: faresError } = useTransportFares();
   const { create, isPending, error } = useCreateFine();
 
   const autoFilled = !!(route.params?.ticketId || route.params?.reason);
@@ -129,21 +129,55 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
   const ticketFareRaw = ticketPrice != null ? ticketPriceToKopecks(ticketPrice) : 0;
   const ticketFareKopecks = ticketFareRaw > 0 ? ticketFareRaw : null;
 
-  // Обраний вручну вид транспорту (коли прив'язки до квитка нема). Список і
-  // ціни — з useTransportFares(), нічого тут не хардкодиться.
+  // Вид транспорту для розрахунку штрафу, коли квиток не пред'явлено.
+  //
+  // 1. ОСНОВНИЙ шлях — з активної перевірки. Контролер уже приклав свій QR до
+  //    валідатора конкретного ТЗ, і система знає, у чому він їде
+  //    (inspection.transport_type приходить з картки валідатора). Питати про
+  //    це людину вдруге — зайве.
+  // 2. ФОЛБЕК — ручний вибір зі списку тарифів. Потрібен, якщо перевірку не
+  //    відкрито (постанова «з нуля»), або у валідаторі не вказано тип
+  //    транспорту. Кнопки лишаються видимими завжди, тож автовибір за потреби
+  //    можна перекрити вручну.
+  const inspectionTransport = inspection?.transport_type ?? null;
+  const autoFare = inspectionTransport
+    ? (fares.find((f) => f.transport === inspectionTransport) ?? null)
+    : null;
+
   const [manualTransport, setManualTransport] = useState<string | null>(null);
+  // Щойно контролер обрав транспорт сам — автовизначення більше не перебиває
+  // його вибір (напр. перевірка в тролейбусі, а порушник їхав автобусом).
+  const [transportTouched, setTransportTouched] = useState(false);
+
   useEffect(() => {
-    if (manualTransport == null && fares[0]) {
-      setManualTransport(fares[0].transport);
-    }
-  }, [fares, manualTransport]);
+    if (transportTouched) return;
+    const next = autoFare?.transport ?? fares[0]?.transport ?? null;
+    if (next != null && next !== manualTransport) setManualTransport(next);
+  }, [autoFare, fares, manualTransport, transportTouched]);
 
   const manualFare = fares.find((f) => f.transport === manualTransport) ?? fares[0] ?? null;
   const manualFareKopecks = manualFare ? ticketPriceToKopecks(manualFare.price) : 0;
   const baseFareKopecks = ticketFareKopecks ?? manualFareKopecks;
   const fineAmount = calculateFineKopecks(baseFareKopecks);
 
+  // Транспорт підтягнувся сам і контролер його не міняв.
+  const transportFromInspection =
+    !transportTouched && autoFare != null && manualTransport === autoFare.transport;
+
+  // Нульовий штраф виписувати не можна: це або незавантажені тарифи, або
+  // порожня адмінка. Краще заблокувати кнопку і сказати чому, ніж видати
+  // постанову на 0 грн.
+  const fareUnavailable = ticketFareKopecks == null && manualFareKopecks <= 0;
+
   const onSubmit = async (): Promise<void> => {
+    // Нульова база = постанова на 0 грн. Це не «дешевий штраф», це зіпсований
+    // документ: у квитанції лишиться 0, і стягнути за ним нічого не можна.
+    if (baseFareKopecks <= 0) {
+      setValidationError(
+        'Не визначено вартість квитка — сума штрафу вийде нульовою. Оберіть вид транспорту вище.',
+      );
+      return;
+    }
     if (!offenderName.trim()) {
       setValidationError('Заповніть ПІБ порушника');
       return;
@@ -194,7 +228,9 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
             {ticketFareKopecks != null
               ? ` · ціна квитка ${formatTicketPrice(ticketPrice as number)}`
               : manualFare
-                ? ` · ${formatTransport(manualFare.transport)}, обрано вручну`
+                ? ` · ${formatTransport(manualFare.transport)}${
+                    transportFromInspection ? ', з поточної перевірки' : ', обрано вручну'
+                  }`
                 : ''}
           </Text>
         </View>
@@ -202,11 +238,32 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
         {ticketFareKopecks == null ? (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>Вартість квитка (база штрафу)</Text>
-            <Text style={styles.fareHint}>
-              {ticketPrice != null
-                ? `У квитка нульова вартість (пільга), тож ${FINE_MULTIPLIER}× від нього дало б нуль. Оберіть вид транспорту — його ціна з адмінки піде у квитанцію.`
-                : "Квиток не перевірявся, тож прив'язати штраф до нього неможливо. Оберіть вид транспорту — його ціна з адмінки піде у квитанцію."}
-            </Text>
+
+            {transportFromInspection && inspection ? (
+              <View style={styles.autoFilledBanner}>
+                <Text style={styles.autoFilledIcon}>✓</Text>
+                <Text style={styles.autoFilledText}>
+                  Транспорт визначено з поточної перевірки:{' '}
+                  {formatTransport(inspectionTransport as string)} · ТЗ {inspection.vehicle_number}.
+                  Якщо порушник їхав іншим — оберіть нижче.
+                </Text>
+              </View>
+            ) : inspectionTransport != null && autoFare == null && fares.length > 0 ? (
+              // Перевірка йде, транспорт відомий, але ціни для нього в адмінці
+              // немає (напр. маршрутка прихована в SETTINGS_SPEC). Мовчки
+              // підставити чужий тариф не можна — кажемо прямо.
+              <Text style={[styles.fareHint, styles.fareHintError]}>
+                У поточній перевірці транспорт «{formatTransport(inspectionTransport)}», але ціну
+                квитка для нього в адмінці не налаштовано. Оберіть тариф вручну.
+              </Text>
+            ) : (
+              <Text style={styles.fareHint}>
+                {ticketPrice != null
+                  ? `У квитка нульова вартість (пільга), тож ${FINE_MULTIPLIER}× від нього дало б нуль. Оберіть вид транспорту — його ціна з адмінки піде у квитанцію.`
+                  : "Квиток не перевірявся, тож прив'язати штраф до нього неможливо. Оберіть вид транспорту — його ціна з адмінки піде у квитанцію."}
+              </Text>
+            )}
+
             {fares.length > 0 ? (
               <View style={styles.chipsRow}>
                 {fares.map((fare) => (
@@ -214,16 +271,24 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
                     key={fare.transport}
                     label={`${formatTransport(fare.transport)} · ${formatPrice(ticketPriceToKopecks(fare.price))}`}
                     active={fare.transport === manualTransport}
-                    onPress={() => setManualTransport(fare.transport)}
+                    onPress={() => {
+                      setTransportTouched(true);
+                      setManualTransport(fare.transport);
+                    }}
                     styles={styles}
                   />
                 ))}
               </View>
             ) : (
-              <Text style={styles.fareHint}>
+              // Порожній список і помилка запиту — різні речі, і плутати їх
+              // не можна: у другому випадку тарифи в адмінці є, просто
+              // застосунок їх не дістав.
+              <Text style={[styles.fareHint, !faresLoading && styles.fareHintError]}>
                 {faresLoading
                   ? 'Завантажуємо тарифи…'
-                  : 'В адмінці не налаштовано жодного тарифу транспорту.'}
+                  : faresError
+                    ? 'Не вдалося завантажити тарифи з сервера. Перевірте звʼязок — без них суму штрафу порахувати неможливо.'
+                    : 'В адмінці не налаштовано жодного тарифу транспорту.'}
               </Text>
             )}
           </View>
@@ -328,9 +393,14 @@ export function RecordFineScreen({ navigation, route }: Props): JSX.Element {
 
       <View style={styles.bottomBar}>
         <Pressable
-          style={[styles.submitButton, isPending && styles.submitButtonDisabled]}
+          style={[
+            styles.submitButton,
+            (isPending || fareUnavailable) && styles.submitButtonDisabled,
+          ]}
           onPress={() => void onSubmit()}
-          disabled={isPending}
+          // Поки не відома вартість квитка, видати постанову не можна: сума
+          // вийшла б нульовою.
+          disabled={isPending || fareUnavailable}
         >
           {isPending ? (
             <ActivityIndicator color="#fff" />
@@ -382,6 +452,7 @@ function makeStyles(c: ColorPalette) {
       marginBottom: -6,
     },
     fareHint: { color: c.textMuted, fontSize: 12, lineHeight: 17, paddingHorizontal: 4 },
+    fareHintError: { color: c.danger, fontWeight: '600' },
 
     autoFilledBanner: {
       flexDirection: 'row', alignItems: 'center', gap: 10,

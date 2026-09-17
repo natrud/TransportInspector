@@ -11,11 +11,19 @@ import { type TransportFare, getTransportFares } from '../data/transport-fares-a
 export function useTransportFares(): {
   fares: TransportFare[];
   isLoading: boolean;
+  /**
+   * Помилка запиту. Потрібна, щоб відрізнити «в адмінці не налаштовано
+   * жодного тарифу» (порожній список) від «не змогли дістатись бекенда»
+   * (застарілий застосунок, нема звʼязку, ендпоінт ще не задеплоєно) —
+   * ціна штрафу залежить від цього, тож мовчазний нуль неприпустимий.
+   */
+  error: Error | null;
+  refetch: () => Promise<unknown>;
 } {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['transport-fares'],
     queryFn: getTransportFares,
     staleTime: 10 * 60_000,
   });
-  return { fares: data ?? [], isLoading };
+  return { fares: data ?? [], isLoading, error, refetch };
 }
