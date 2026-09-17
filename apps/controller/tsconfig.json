@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "incremental": true,
+    "paths": {
+      "@transport/shared": ["../../packages/shared/src/index.ts"],
+      "@transport/shared/*": ["../../packages/shared/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "App.tsx", "index.ts"],
+  "exclude": ["node_modules", "android", "ios", ".expo"]
+}

@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "1063994604902",
+    "project_id": "mars-bc",
+    "storage_bucket": "mars-bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063994604902:android:8587548753bdf306e65ca7",
+        "android_client_info": {
+          "package_name": "com.mars.bc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6ff9k8dzrflBRSxEnEqY3RXNYe92hw6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063994604902:android:76614b1d7393f14de65ca7",
+        "android_client_info": {
+          "package_name": "com.mars.bc.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6ff9k8dzrflBRSxEnEqY3RXNYe92hw6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063994604902:android:49e859a846c770eee65ca7",
+        "android_client_info": {
+          "package_name": "ua.transport.controller"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6ff9k8dzrflBRSxEnEqY3RXNYe92hw6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

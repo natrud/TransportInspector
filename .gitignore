@@ -1,0 +1,77 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# Node / pnpm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Secrets (Firebase Admin SDK service account keys, etc.)
+FCM_Key_*.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+
+# Expo / Metro
+.expo/
+.expo-shared/
+dist/
+web-build/
+.metro-health-check*
+
+# TypeScript
+*.tsbuildinfo
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/.cxx/
+android/app/.cxx/
+android/local.properties
+android/app/release/
+android/captures/
+*.hprof
+*.jks
+*.keystore
+!debug.keystore
+
+# iOS
+ios/build/
+ios/Pods/
+ios/DerivedData/
+ios/*.xcuserstate
+**/xcuserdata/
+*.moved-aside
+*.xccheckout
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Build artifacts
+*.apk
+*.aab
+*.jsbundle
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.orig
+.cache/

@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "БЦ-Інспектор",
+    "slug": "transport-controller",
+    "version": "0.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "scheme": "ua.transport.controller",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ua.transport.controller",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Сканування QR-кодів квитків",
+        "NSLocationWhenInUseUsageDescription": "Геопозиція для аудиту валідацій (необовʼязково)"
+      }
+    },
+    "android": {
+      "package": "ua.transport.controller",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0f3b82"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-brightness",
+      [
+        "expo-notifications",
+        {
+          "iosDisplayInForeground": true
+        }
+      ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "oidcAuthority": "TODO_OIDC_AUTHORITY",
+      "oidcClientId": "TODO_OIDC_CLIENT_ID",
+      "oidcRedirectUri": "ua.transport.controller://oauth2/callback",
+      "apiBaseUrl": "https://digital.bc-rada.gov.ua",
+      "eas": {
+        "projectId": "58b3204b-0e5b-4729-a667-31242e5c9283"
+      }
+    },
+    "owner": "natrud"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\Mega\\\\FREELANCE\\\\MARS_NEW_BC_DEV\\\\TransportInspector\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Mega\\\\FREELANCE\\\\MARS_NEW_BC_DEV\\\\backend\\\\app\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Read(//d/Mega/FREELANCE/MARS_NEW_BC_DEV/mobile/src/lib/**)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/expo/package.json'\\).version\\)\")",
+      "Bash(node node_modules/typescript/bin/tsc --project packages/shared/tsconfig.json --noEmit)",
+      "Bash(node node_modules/typescript/bin/tsc --project apps/controller/tsconfig.json --noEmit)",
+      "Bash(node node_modules/typescript/bin/tsc --project apps/driver/tsconfig.json --noEmit)"
+    ]
+  }
+}
